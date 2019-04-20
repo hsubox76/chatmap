@@ -12,6 +12,20 @@
 
 .comment-container {
   background-color: white;
-  margin: 5px;
+  margin: 10px 5px;
   padding: 5px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.connector-line {
+  width: 2px;
+  height: 20px;
+  background-color: black;
+  position: absolute;
+  top: -20px;
+}
+
+.comment-row {
+  display: flex;
 }

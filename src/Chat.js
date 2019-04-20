@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import Comment from "./Comment";
@@ -28,6 +28,103 @@ const Chat = ({ user, chatId }) => {
   const [chatData, setChatData] = useState();
   const [comments, setComments] = useState();
   const [users, setUsers] = useState({});
+  const [replyState, setReplyState] = useState();
+
+  const commentTree = useMemo(() => {
+    if (!comments || !chatData) return;
+    const queue = [];
+    const rows = [];
+    const widths = {};
+    const starts = {};
+    const offsets = {};
+    let counter = 200;
+    let depth = 0;
+
+    let tempComments = Object.assign({}, comments);
+    if (replyState) {
+      tempComments['new'] = { id: 'new', parent: replyState.parentId };
+      console.log(tempComments[replyState.parentId]);
+      if (!tempComments[replyState.parentId].replies) {
+        tempComments[replyState.parentId].replies = [];
+      }
+      tempComments[replyState.parentId].replies.push('new');
+    }
+    const head = tempComments[chatData.head];
+    queue.push(head);
+    queue.push(null);
+
+    // build rows with breadth first traversal
+    while (queue.length > 1 && counter > 0) {
+      counter--;
+      const current = queue.shift();
+      if (!current) {
+        depth++;
+        queue.push(null);
+        continue;
+      }
+      widths[current.id] = 0;
+      if (!rows[depth]) rows[depth] = [];
+      rows[depth].push(Object.assign({}, current, { depth }));
+      // if (replyState && current.id === replyState.parentId) {
+      //   // reply dummy
+      //   queue.push({
+      //     id: 'new'
+      //   });
+      // }
+      if (current.replies && current.replies.length) {
+        current.replies.forEach(replyId => {
+          queue.push(tempComments[replyId]);
+        });
+      }
+    }
+
+    console.log(rows);
+
+    // calculate widths from bottom up
+    for (let row = rows.length - 1; row >= 0; row--) {
+      rows[row].forEach(comment => {
+        widths[comment.id] = 0;
+        if (!comment.replies || !comment.replies.length) {
+          widths[comment.id] = 1;
+        } else {
+          comment.replies.forEach(replyId => {
+            widths[comment.id] += widths[replyId];
+          });
+        }
+        // if (replyState && comment.id === replyState.parentId) {
+        //   widths[comment.id] += 1;
+        // }
+      });
+    }
+
+    // calculate starts from top down
+    rows.forEach(row => {
+      let start = 0;
+      let parentStart = 0;
+      let parent = null;
+      let widthSoFar = 0;
+      row.forEach(comment => {
+        if (parent !== comment.parent) {
+          parent = comment.parent;
+          parentStart = starts[parent] ? starts[parent] : 0;
+          start = 0;
+        }
+        starts[comment.id] = start + parentStart;
+        offsets[comment.id] = starts[comment.id] - widthSoFar;
+        console.log(comment.id, 'start', starts[comment.id], 'offset', offsets[comment.id], 'wsf', widthSoFar)
+        start += widths[comment.id];
+        widthSoFar += widths[comment.id];
+      });
+    });
+
+    console.log(widths);
+
+    return {rows, widths, starts, offsets};
+  }, [comments, replyState]);
+
+  function handleOpenReply(parentId) {
+    setReplyState({ parentId });
+  }
 
   // get top level chat data
   useEffect(() => {
@@ -76,19 +173,27 @@ const Chat = ({ user, chatId }) => {
     return () => unsubs.forEach(unsub => unsub());
   }, [chatData]);
 
+  function renderCommentTree() {
+    const {rows, widths, starts, offsets} = commentTree;
+    return rows.map((row, index) => {
+      return <div className="comment-row" key={index}>{row.map(comment => <Comment
+        key={comment.id}
+        width={widths[comment.id]}
+        start={starts[comment.id]}
+        offset={offsets[comment.id]}
+        comment={comment}
+        commentId={comment.id}
+        chatId={chatId}
+        author={users[comment.authorId]}
+        user={user}
+        onOpenReply={handleOpenReply}
+        />)}</div>
+    });
+  }
+
   return (
     <div className="chat-container">
-      {comments &&
-        Object.keys(comments).map((key) => (
-          <Comment
-            key={key}
-            comment={comments[key]}
-            commentId={key}
-            chatId={chatId}
-            author={users[comments[key].authorId]}
-            user={user}
-            />
-        ))}
+      {commentTree && renderCommentTree()}
       {!comments && <Reply chatId={chatId} user={user} />}
     </div>
   );
