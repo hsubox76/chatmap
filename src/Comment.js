@@ -3,11 +3,10 @@ import Reply from "./Reply";
 import {format} from 'date-fns';
 
 const WIDTH = 250;
-const MARGIN = 5;
 
 const Comment = ({ comment, commentId, user, chatId, author, width = 1, start = 0, offset = 0, onOpenReply }) => {
-  const pixelWidth = WIDTH * width + (MARGIN * 2 * (width - 1));
-  const pixelOffset = WIDTH * offset + (MARGIN * 2 * offset) + MARGIN;
+  const pixelWidth = WIDTH * width;
+  const pixelOffset = WIDTH * offset;
   const style = {
     width: pixelWidth
   };
@@ -21,20 +20,24 @@ const Comment = ({ comment, commentId, user, chatId, author, width = 1, start = 
   if (commentId === 'new') {
     return (
       <div className="comment-container" key={commentId} style={style}>
-        <div>{comment.content || ''}</div>
-        <Reply parentId={commentId} user={user} chatId={chatId} />
-        { !comment.isHead && <div className="connector-line" style={{ left: pixelWidth / 2 }}></div> }
-        <div>{start} {offset}</div>
+        <div className="comment-box">
+          <div>{comment.content || ''}</div>
+          <Reply parentId={comment.parent} user={user} chatId={chatId} />
+          { !comment.isHead && <div className="connector-line" style={{ left: pixelWidth / 2 }}></div> }
+          <div>{start} {offset}</div>
+        </div>
       </div>
     );
   }
   return (
     <div className="comment-container" key={commentId} style={style}>
-      <div>{author ? author.displayName : "-"}: {comment.content}</div>
-      <div>created at {format(comment.createdAt.toDate(), 'MM/DD/YYYY h:mm a')}</div>
-      <button onClick={handleReplyClick}>Reply</button>
-        <div>{start} {offset}</div>
-      { !comment.isHead && <div className="connector-line" style={{ left: pixelWidth / 2 }}></div> }
+      <div className="comment-box">
+        <div>{author ? author.displayName : "-"}: {comment.content}</div>
+        <div>created at {format(comment.createdAt.toDate(), 'MM/DD/YYYY h:mm a')}</div>
+        <button onClick={handleReplyClick}>Reply</button>
+          <div>{start} {offset}</div>
+        { !comment.isHead && <div className="connector-line" style={{ left: pixelWidth / 2 }}></div> }
+      </div>
     </div>
   );
 };
