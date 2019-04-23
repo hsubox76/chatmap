@@ -5,7 +5,8 @@ import "firebase/firestore";
 const Reply = ({
   parentId,
   user,
-  chatId
+  chatId,
+  closeReplyBox = () => {}
 }) => {
   const inputRef = useRef();
 
@@ -50,19 +51,25 @@ const Reply = ({
         return Promise.all(downstreamPromises);
       })
       .then(() => {
-        inputRef.current.value = "";
+        closeReplyBox();
       })
       .catch(e => console.error(e))
       .finally(() => {
         // TODO: ADD LOADING INDICATOR OFF
-        inputRef.current.disabled = false;
       });
   }
 
   return (
     <form className="reply-container" onSubmit={addComment}>
-      <input placeholder="say something" ref={inputRef} />
-      <button>submit</button>
+      <textarea
+        className="comment-text"
+        placeholder="say something"
+        ref={inputRef}
+      />
+      <div className="button-container">
+        <button>submit</button>
+        <button type="button" onClick={closeReplyBox}>cancel</button>
+      </div>
     </form>
   );
 };

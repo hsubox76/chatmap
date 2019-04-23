@@ -1,0 +1,95 @@
+
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: lightgrey;
+  overflow: auto;
+}
+
+.chat-area {
+  flex: 1;
+  background-color: palegoldenrod;
+}
+
+.comment-row {
+  display: flex;
+}
+
+.comment-container {
+  padding: 10px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.comment-container .comment-box {
+  background-color: white;
+  box-sizing: border-box;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.comment-box.comment-reply-box {
+  box-shadow: inset 0 0 0 1px seagreen, inset 0 0 0 2px lightgreen;
+}
+
+.comment-container .comment-box .comment-author {
+  font-weight: bold;
+  font-size: .9rem;
+}
+
+.comment-container .comment-box .comment-content {
+  font-weight: normal;
+  font-size: 1rem;
+  color: #444;
+  margin: 0.25rem 0;
+}
+
+.comment-container .comment-box .comment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.comment-container .comment-box .comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 0.25rem;
+}
+
+.comment-container .comment-box .comment-meta {
+  font-weight: normal;
+  font-size: .8rem;
+}
+
+.connector-line {
+  width: 2px;
+  height: 20px;
+  background-color: black;
+  position: absolute;
+  top: -10px;
+}
+
+.reply-container {
+  margin-top: 0.5rem;
+}
+
+.reply-container .comment-text {
+  font-size: .9rem;
+  display: block;
+  border: 1px solid #999;
+  border-radius: 5px;
+  padding: 5px;
+  width: 100%;
+  resize: none;
+  height: 100px;
+}
+
+.reply-container .button-container {
+  display: flex;
+  margin-top: 0.5rem;
+}

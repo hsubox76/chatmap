@@ -26,6 +26,13 @@ function createProfileIfNotFound(user) {
     });
 }
 
+function updateProfile(user, newName) {
+  user.updateProfile({
+    displayName: newName
+  });
+  firebase.firestore().collection('users').doc(user.uid).update({ displayName: newName })
+}
+
 const App = () => {
   const [user, setUser] = useState();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -59,14 +66,13 @@ const App = () => {
         <div>
           user: {user.displayName}, {user.email}
         </div>
+        <button onClick={() => updateProfile(user, 'CH Work')}>update profile</button>
         <button onClick={() => firebase.auth().signOut()}>sign out</button>
       </div>
-      <div className="content-container">
-        <Router>
-          <ChatList path="/" user={user} />
-          <Chat path="/chat/:chatId" user={user} />
-        </Router>
-      </div>
+      <Router className="content-container">
+        <ChatList path="/" user={user} />
+        <Chat path="/chat/:chatId" user={user} />
+      </Router>
     </div>
   );
 };

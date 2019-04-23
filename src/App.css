@@ -1,42 +1,26 @@
 .app-container {
   background-color: pink;
-}
-
-.chat-list-container {
-  background-color: lightgreen;
-}
-
-.chat-container {
-  background-color: lightgrey;
-  overflow: scroll;
-}
-
-.chat-area {
-  background-color: palegoldenrod;
-}
-
-.comment-container {
-  padding: 10px;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.comment-container .comment-box {
-  background-color: white;
-  box-sizing: border-box;
-  height: 100%;
-  padding: 5px;
-  border-radius: 5px;
-}
-
-.connector-line {
-  width: 2px;
-  height: 20px;
-  background-color: black;
-  position: absolute;
-  top: -10px;
-}
-
-.comment-row {
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  height: 32px;
+}
+
+.content-container {
+  flex: 1;
+  background-color: lightgreen;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-summary-box {
+  background-color: white;
+  margin: 5px;
+  padding: 5px;
 }

@@ -10,7 +10,7 @@ const Comment = ({
   author,
   width = 1,
   offset = 0,
-  onOpenReply
+  setReply
 }) => {
   // Outer container style (dimensions & position)
   const style = {
@@ -23,31 +23,47 @@ const Comment = ({
   // Reply button handler
   function handleReplyClick(e) {
     e.preventDefault();
-    onOpenReply(commentId);
+    setReply(commentId);
   }
+
+  const boxClasses = ['comment-box'];
 
   // Varying inner contents
   let innards = null;
   if (commentId === 'new') {
+    boxClasses.push('comment-reply-box');
     innards = (
       <div>
-        <div>{user.displayName}</div>
-        <Reply parentId={comment.parent} user={user} chatId={chatId} />
+        <div className="comment-author">{user.displayName}</div>
+        <Reply
+          parentId={comment.parent}
+          user={user}
+          chatId={chatId}
+          closeReplyBox={() => setReply(null)} />
       </div>
     );
   } else {
     innards = (
       <div>
-        <div>{author ? author.displayName : "-"}: {comment.content}</div>
-        <div>created at {format(comment.createdAt.toDate(), 'MM/DD/YYYY h:mm a')}</div>
-        <button onClick={handleReplyClick}>Reply</button>
+        <div className="comment-header">
+          <div className="comment-author">
+            {author ? author.displayName : "-"}
+          </div>
+          <div className="comment-meta">
+            {format(comment.createdAt.toDate(), 'M/DD h:mma')}
+          </div>
+        </div>
+        <div className="comment-content">{comment.content}</div>
+        <div className="comment-footer">
+          <button onClick={handleReplyClick}>Reply</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="comment-container" key={commentId} style={style}>
-      <div className="comment-box">
+      <div className={boxClasses.join(' ')}>
         { innards }
         { !comment.isHead && <div className="connector-line" style={{ left: width / 2 }}></div> }
       </div>
