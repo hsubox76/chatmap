@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import Reply from "./Reply";
 import {format} from 'date-fns';
 
@@ -10,11 +10,15 @@ const Comment = ({
   author,
   width = 1,
   offset = 0,
-  setReply
+  setReply,
+  setLineData
 }) => {
+  const [box, setBox] = useState();
+  const [container, setContainer] = useState();
+
   // Outer container style (dimensions & position)
   const style = {
-    width: width
+    width: width,
   };
   if (offset) {
     style.marginLeft = offset;
@@ -27,6 +31,31 @@ const Comment = ({
   }
 
   const boxClasses = ['comment-box'];
+  const boxRef = useCallback(node => {
+    if (node) {
+      setBox(node.getBoundingClientRect());
+    }
+  }, [comment])
+  const containerRef = useCallback(node => {
+    if (node) {
+      setContainer(node.getBoundingClientRect());
+    }
+  }, [comment])
+
+  useEffect(() => {
+    if (!box || !container) return;
+    if (commentId === 'new') console.log('container');
+    setLineData(commentId, {
+      topDot: {
+        x: container.left + container.width / 2,
+        y: container.top + 10
+      },
+      bottomDot: {
+        x: container.left + container.width / 2,
+        y: container.top + box.height + 10
+      },
+    });
+  }, [box, container]);
 
   // Varying inner contents
   let innards = null;
@@ -43,10 +72,12 @@ const Comment = ({
       </div>
     );
   } else {
+    const authorClasses = ['comment-author'];
+    if (user.uid === author.uid) authorClasses.push('is-me')
     innards = (
       <div>
         <div className="comment-header">
-          <div className="comment-author">
+          <div className={authorClasses.join(' ')}>
             {author ? author.displayName : "-"}
           </div>
           <div className="comment-meta">
@@ -62,10 +93,9 @@ const Comment = ({
   }
 
   return (
-    <div className="comment-container" key={commentId} style={style}>
-      <div className={boxClasses.join(' ')}>
+    <div className="comment-container" key={commentId} style={style} ref={containerRef}>
+      <div className={boxClasses.join(' ')} ref={boxRef}>
         { innards }
-        { !comment.isHead && <div className="connector-line" style={{ left: width / 2 }}></div> }
       </div>
     </div>
   );

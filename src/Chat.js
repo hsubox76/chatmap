@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useReducer } from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import Comment from "./Comment";
@@ -30,12 +30,22 @@ function getComment(id) {
     });
 }
 
+function reducer(state, action) {
+  switch (action.type) {
+    case 'add':
+      return Object.assign({}, state, { [action.commentId]: action.commentLinesData });
+    default:
+      throw new Error('what');
+  }
+}
+
 const Chat = ({ user, chatId }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [chatData, setChatData] = useState();
   const [comments, setComments] = useState();
   const [users, setUsers] = useState({});
   const [replyState, setReplyState] = useState();
+  const [lines, dispatch] = useReducer(reducer, {});
 
   const windowWidth = useWindowWidth() - 15;
 
@@ -80,8 +90,8 @@ const Chat = ({ user, chatId }) => {
       results.forEach(result => {
         commentMap[result.id] = result;
       });
-      setComments(commentMap);
       setIsLoaded(true);
+      setComments(commentMap);
     });
   }, [chatData]);
 
@@ -93,29 +103,9 @@ const Chat = ({ user, chatId }) => {
         .map(id => firebase.firestore().collection("users").doc(id).get());
     Promise.all(userFetches).then(docs => {
       const userMap = {};
-      docs.forEach(doc => userMap[doc.id] = doc.data());
+      docs.forEach(doc => userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id} ));
       setUsers(userMap);
     });
-  }, [chatData]);
-
-  // get users based on ids in top level chat data
-  useEffect(() => {
-    if (!chatData) return;
-    let unsubs = [];
-    chatData.participantIds.forEach(userId => {
-      unsubs.push(
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .onSnapshot(snap => {
-            if (snap) {
-              setUsers(Object.assign({}, users, { [userId]: snap.data() }));
-            }
-          })
-      );
-    });
-    return () => unsubs.forEach(unsub => unsub());
   }, [chatData]);
 
   // Get comment and chat area widths based on window width.
@@ -144,6 +134,7 @@ const Chat = ({ user, chatId }) => {
           author={users[comment.authorId]}
           user={user}
           setReply={handleSetReply}
+          setLineData={(commentId, commentLinesData) => dispatch({ type: 'add', commentId, commentLinesData })}
           />
 
     ));
@@ -159,11 +150,54 @@ const Chat = ({ user, chatId }) => {
     });
   }
 
+  function renderLines() {
+    if (!commentTree || !lines || Object.keys(lines).length === 0) return;
+    return commentTree.connections.map(connection => {
+      // child is a reply node?
+      if (!lines[connection[1]]) return null;
+      const from = lines[connection[0]].bottomDot;
+      const to = lines[connection[1]].topDot;
+      const width = from.x === to.x ? 4 : Math.abs(from.x - to.x);
+      const height = to.y - from.y;
+      const left = from.x === to.x ? from.x - 2 : Math.min(from.x, to.x);
+      const style = {
+        position: 'absolute',
+        top: from.y - 32,
+        left,
+        height,
+        width
+      };
+      let x1, x2;
+      if (from.x - to.x > 0) {
+        x1 = from.x - to.x;
+        x2 = 0;
+      } else if (from.x - to.x < 0) {
+        x1 = 0;
+        x2 = to.x - from.x;
+      } else {
+        x1 = x2 = 2;
+      }
+      return (
+        <svg style={style} key={connection[0] + '-' + connection[1]}>
+          <line
+            x1={x1}
+            y1={0}
+            x2={x2}
+            y2={to.y - from.y}
+            stroke="#333"
+            strokeWidth={2}
+          />
+        </svg>
+      );
+    });
+  }
+
   return (
     <div className="chat-container">
       <div className="chat-area" style={{ width: chatAreaWidth }}>
         {!isLoaded && <div>LOADING</div>}
         {commentTree && renderCommentTree()}
+        {lines && renderLines()}
         {isLoaded && !comments && <Reply chatId={chatId} user={user} />}
       </div>
     </div>

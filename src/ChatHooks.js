@@ -23,6 +23,7 @@ export function generateCommentTree(comments, chatData, replyState) {
   let depth = 0;
 
   let treeLookup = {};
+  let connections = [];
 
   // Deep copy a comment tree and fill out ID string "children" with nodes
   function copyTree(node) {
@@ -31,6 +32,7 @@ export function generateCommentTree(comments, chatData, replyState) {
     if (node.replies) {
       newNode.children = [];
       node.replies.forEach(replyId => {
+        connections.push([node.id, replyId]);
         newNode.children.push(copyTree(comments[replyId]))
       });
       newNode.replies = undefined;
@@ -47,6 +49,7 @@ export function generateCommentTree(comments, chatData, replyState) {
     if (!treeLookup[replyState.parentId].children) {
       treeLookup[replyState.parentId].children = [];
     }
+    connections.push([replyState.parentId, newId]);
     treeLookup[replyState.parentId].children.push(treeLookup[newId]);
   }
 
@@ -112,5 +115,5 @@ export function generateCommentTree(comments, chatData, replyState) {
     }
   });
 
-  return { rows, maxWidth };
+  return { rows, maxWidth, connections };
 }

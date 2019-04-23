@@ -10,6 +10,7 @@
 
 .chat-area {
   flex: 1;
+  position: relative;
   background-color: palegoldenrod;
 }
 
@@ -37,6 +38,12 @@
 .comment-container .comment-box .comment-author {
   font-weight: bold;
   font-size: .9rem;
+}
+
+.comment-container .comment-box .comment-author.is-me {
+  font-weight: bold;
+  font-size: .9rem;
+  color: slateblue;
 }
 
 .comment-container .comment-box .comment-content {
