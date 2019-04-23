@@ -8,6 +8,11 @@
 
 .chat-container {
   background-color: lightgrey;
+  overflow: scroll;
+}
+
+.chat-area {
+  background-color: palegoldenrod;
 }
 
 .comment-container {
