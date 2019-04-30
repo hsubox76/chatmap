@@ -2,19 +2,16 @@ import React, { useRef } from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
 
-const Reply = ({
-  parentId,
-  user,
-  chatId,
-  closeReplyBox = () => {}
-}) => {
+const Reply = ({ parentId, user, chatId, closeReplyBox = () => {} }) => {
   const inputRef = useRef();
 
   function addComment(e) {
     e.preventDefault();
     // TODO: ADD LOADING INDICATOR ON, DISABLE BUTTON, USE STATE PROBABLY
     inputRef.current.disabled = true;
-    firebase.firestore().collection("comments")
+    firebase
+      .firestore()
+      .collection("comments")
       .add({
         content: inputRef.current.value,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -34,7 +31,9 @@ const Reply = ({
         };
         // If parent is another comment, update that comment.
         if (parentId) {
-          const updateParent = firebase.firestore().collection("comments")
+          const updateParent = firebase
+            .firestore()
+            .collection("comments")
             .doc(parentId)
             .update({
               replies: firebase.firestore.FieldValue.arrayUnion(docRef.id)
@@ -44,7 +43,9 @@ const Reply = ({
           // Otherwise add a head field to the pending chatUpdates
           chatUpdates.head = docRef.id;
         }
-        const updateChat = firebase.firestore().collection("chats")
+        const updateChat = firebase
+          .firestore()
+          .collection("chats")
           .doc(chatId)
           .update(chatUpdates);
         downstreamPromises.push(updateChat);
@@ -68,7 +69,9 @@ const Reply = ({
       />
       <div className="button-container">
         <button>submit</button>
-        <button type="button" onClick={closeReplyBox}>cancel</button>
+        <button type="button" onClick={closeReplyBox}>
+          cancel
+        </button>
       </div>
     </form>
   );

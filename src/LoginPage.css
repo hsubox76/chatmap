@@ -1,0 +1,11 @@
+.login-page-container {
+  padding: 10px;
+}
+
+.form-row {
+  margin: 5px 0;
+}
+
+label {
+  display: block;
+}

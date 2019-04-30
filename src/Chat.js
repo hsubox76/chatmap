@@ -4,7 +4,7 @@ import "firebase/firestore";
 import Comment from "./Comment";
 import Reply from "./Reply";
 import "./Chat.css";
-import { useWindowWidth, generateCommentTree } from './ChatHooks';
+import { useWindowWidth, generateCommentTree } from "./ChatHooks";
 
 const MIN_COMMENT_WIDTH = 250;
 const MAX_COMMENT_WIDTH = 400; // (Max base width)
@@ -18,9 +18,13 @@ function getComment(id) {
     .get()
     .then(snap => {
       if (snap) {
-        let replyPromises = [Promise.resolve(Object.assign(snap.data(), { id: snap.id }))];
+        let replyPromises = [
+          Promise.resolve(Object.assign(snap.data(), { id: snap.id }))
+        ];
         if (snap.data().replies) {
-          const childPromises = snap.data().replies.map(replyId => getComment(replyId))
+          const childPromises = snap
+            .data()
+            .replies.map(replyId => getComment(replyId));
           replyPromises = replyPromises.concat(childPromises);
         }
         return Promise.all(replyPromises).then(results => {
@@ -32,10 +36,12 @@ function getComment(id) {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'add':
-      return Object.assign({}, state, { [action.commentId]: action.commentLinesData });
+    case "add":
+      return Object.assign({}, state, {
+        [action.commentId]: action.commentLinesData
+      });
     default:
-      throw new Error('what');
+      throw new Error("what");
   }
 }
 
@@ -47,7 +53,7 @@ const Chat = ({ user, chatId }) => {
   const [replyState, setReplyState] = useState();
   const [lines, dispatch] = useReducer(reducer, {});
 
-  const windowWidth = useWindowWidth() - 15;
+  const windowWidth = useWindowWidth() - 40;
 
   const commentTree = useMemo(
     () => generateCommentTree(comments, chatData, replyState),
@@ -97,13 +103,21 @@ const Chat = ({ user, chatId }) => {
 
   useEffect(() => {
     if (!chatData) return;
-    const idsToGet = chatData.participantIds.filter(id => !Object.keys(users).includes(id));
-    const userFetches =
-      idsToGet
-        .map(id => firebase.firestore().collection("users").doc(id).get());
+    const idsToGet = chatData.participantIds.filter(
+      id => !Object.keys(users).includes(id)
+    );
+    const userFetches = idsToGet.map(id =>
+      firebase
+        .firestore()
+        .collection("users")
+        .doc(id)
+        .get()
+    );
     Promise.all(userFetches).then(docs => {
       const userMap = {};
-      docs.forEach(doc => userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id} ));
+      docs.forEach(
+        doc => (userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id }))
+      );
       setUsers(userMap);
     });
   }, [chatData]);
@@ -124,19 +138,20 @@ const Chat = ({ user, chatId }) => {
   function renderRow(row, baseCommentWidth) {
     return row.map(comment => (
       <Comment
-          key={comment.id}
-          width={baseCommentWidth * comment.width}
-          start={comment.startPos}
-          offset={baseCommentWidth * comment.offset}
-          comment={comment}
-          commentId={comment.id}
-          chatId={chatId}
-          author={users[comment.authorId]}
-          user={user}
-          setReply={handleSetReply}
-          setLineData={(commentId, commentLinesData) => dispatch({ type: 'add', commentId, commentLinesData })}
-          />
-
+        key={comment.id}
+        width={baseCommentWidth * comment.width}
+        start={comment.startPos}
+        offset={baseCommentWidth * comment.offset}
+        comment={comment}
+        commentId={comment.id}
+        chatId={chatId}
+        author={users[comment.authorId]}
+        user={user}
+        setReply={handleSetReply}
+        setLineData={(commentId, commentLinesData) =>
+          dispatch({ type: "add", commentId, commentLinesData })
+        }
+      />
     ));
   }
 
@@ -146,7 +161,7 @@ const Chat = ({ user, chatId }) => {
         <div className="comment-row" key={index}>
           {renderRow(row, baseCommentWidth)}
         </div>
-        );
+      );
     });
   }
 
@@ -161,24 +176,39 @@ const Chat = ({ user, chatId }) => {
       const height = to.y - from.y;
       const left = from.x === to.x ? from.x - 2 : Math.min(from.x, to.x);
       const style = {
-        position: 'absolute',
+        position: "absolute",
         top: from.y - 32,
-        left,
+        left: left - 20 - 2,
         height,
-        width
+        width: width + 4
       };
+      const y1 = 0;
+      const y2 = to.y - from.y;
       let x1, x2;
       if (from.x - to.x > 0) {
         x1 = from.x - to.x;
-        x2 = 0;
+        x2 = 1;
       } else if (from.x - to.x < 0) {
-        x1 = 0;
+        x1 = 1;
         x2 = to.x - from.x;
       } else {
         x1 = x2 = 2;
       }
-      return (
-        <svg style={style} key={connection[0] + '-' + connection[1]}>
+
+      let line;
+      if (x1 !== x2) {
+        const middleY = y1 + (y2 - y1) / 2;
+        let path = "M";
+        path += ` ${x1} ${y1}`;
+        path += " L";
+        path += `${x1} ${middleY}`;
+        path += ` L${x2} ${middleY}`;
+        path += ` L${x2} ${y2}`;
+        line = (
+          <path d={path} stroke="#333" strokeWidth={2} fill="transparent" />
+        );
+      } else {
+        line = (
           <line
             x1={x1}
             y1={0}
@@ -187,6 +217,11 @@ const Chat = ({ user, chatId }) => {
             stroke="#333"
             strokeWidth={2}
           />
+        );
+      }
+      return (
+        <svg style={style} key={connection[0] + "-" + connection[1]}>
+          {line}
         </svg>
       );
     });

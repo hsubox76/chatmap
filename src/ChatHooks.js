@@ -2,20 +2,19 @@ import { useState, useEffect } from "react";
 
 export function useWindowWidth() {
   const [width, setWidth] = useState(window.innerWidth);
-  
+
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   });
-  
+
   return width;
 }
 
 export function generateCommentTree(comments, chatData, replyState) {
-
   if (!comments || !chatData) return;
   const queue = [];
   const rows = [];
@@ -33,7 +32,7 @@ export function generateCommentTree(comments, chatData, replyState) {
       newNode.children = [];
       node.replies.forEach(replyId => {
         connections.push([node.id, replyId]);
-        newNode.children.push(copyTree(comments[replyId]))
+        newNode.children.push(copyTree(comments[replyId]));
       });
       newNode.replies = undefined;
     }
@@ -44,7 +43,7 @@ export function generateCommentTree(comments, chatData, replyState) {
 
   // Add reply placeholder comment box if needed.
   if (replyState) {
-    let newId = 'new';
+    let newId = "new";
     treeLookup[newId] = { id: newId, parent: replyState.parentId };
     if (!treeLookup[replyState.parentId].children) {
       treeLookup[replyState.parentId].children = [];
@@ -97,12 +96,12 @@ export function generateCommentTree(comments, chatData, replyState) {
     node.children.forEach(child => {
       propagateStartPositions(child, startPos);
       startPos += child.width;
-    })
+    });
   }
   propagateStartPositions(tree);
 
   let maxWidth = 0;
-  
+
   // Get offsets based on start positions.
   rows.forEach(function doOffsets(row) {
     let pos = 0;

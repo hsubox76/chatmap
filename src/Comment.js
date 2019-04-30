@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 import Reply from "./Reply";
-import {format} from 'date-fns';
+import { format } from "date-fns";
+import { useWindowWidth } from "./ChatHooks";
 
 const Comment = ({
   comment,
@@ -15,10 +16,11 @@ const Comment = ({
 }) => {
   const [box, setBox] = useState();
   const [container, setContainer] = useState();
+  const windowWidth = useWindowWidth();
 
   // Outer container style (dimensions & position)
   const style = {
-    width: width,
+    width: width
   };
   if (offset) {
     style.marginLeft = offset;
@@ -30,21 +32,26 @@ const Comment = ({
     setReply(commentId);
   }
 
-  const boxClasses = ['comment-box'];
-  const boxRef = useCallback(node => {
-    if (node) {
-      setBox(node.getBoundingClientRect());
-    }
-  }, [comment])
-  const containerRef = useCallback(node => {
-    if (node) {
-      setContainer(node.getBoundingClientRect());
-    }
-  }, [comment])
+  const boxClasses = ["comment-box"];
+  const boxRef = useCallback(
+    node => {
+      if (node) {
+        setBox(node.getBoundingClientRect());
+      }
+    },
+    [comment]
+  );
+  const containerRef = useCallback(
+    node => {
+      if (node) {
+        setContainer(node.getBoundingClientRect());
+      }
+    },
+    [comment]
+  );
 
   useEffect(() => {
     if (!box || !container) return;
-    if (commentId === 'new') console.log('container');
     setLineData(commentId, {
       topDot: {
         x: container.left + container.width / 2,
@@ -53,14 +60,14 @@ const Comment = ({
       bottomDot: {
         x: container.left + container.width / 2,
         y: container.top + box.height + 10
-      },
+      }
     });
-  }, [box, container]);
+  }, [box, container, windowWidth]);
 
   // Varying inner contents
   let innards = null;
-  if (commentId === 'new') {
-    boxClasses.push('comment-reply-box');
+  if (commentId === "new") {
+    boxClasses.push("comment-reply-box");
     innards = (
       <div>
         <div className="comment-author">{user.displayName}</div>
@@ -68,20 +75,21 @@ const Comment = ({
           parentId={comment.parent}
           user={user}
           chatId={chatId}
-          closeReplyBox={() => setReply(null)} />
+          closeReplyBox={() => setReply(null)}
+        />
       </div>
     );
   } else {
-    const authorClasses = ['comment-author'];
-    if (user.uid === author.uid) authorClasses.push('is-me')
+    const authorClasses = ["comment-author"];
+    if (user && user.uid === author.uid) authorClasses.push("is-me");
     innards = (
       <div>
         <div className="comment-header">
-          <div className={authorClasses.join(' ')}>
+          <div className={authorClasses.join(" ")}>
             {author ? author.displayName : "-"}
           </div>
           <div className="comment-meta">
-            {format(comment.createdAt.toDate(), 'M/DD h:mma')}
+            {format(comment.createdAt.toDate(), "M/DD h:mma")}
           </div>
         </div>
         <div className="comment-content">{comment.content}</div>
@@ -93,9 +101,14 @@ const Comment = ({
   }
 
   return (
-    <div className="comment-container" key={commentId} style={style} ref={containerRef}>
-      <div className={boxClasses.join(' ')} ref={boxRef}>
-        { innards }
+    <div
+      className="comment-container"
+      key={commentId}
+      style={style}
+      ref={containerRef}
+    >
+      <div className={boxClasses.join(" ")} ref={boxRef}>
+        {innards}
       </div>
     </div>
   );
