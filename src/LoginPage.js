@@ -25,7 +25,23 @@ function doesUsernameExist(username) {
 }
 
 function signInWithPopup(){
-  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(userCredential => {
+    const user = userCredential.user;
+    const profileUpdate = user.updateProfile({
+      displayName: user.displayName
+    });
+    const databaseUpdate = firebase
+      .firestore()
+      .collection("users")
+      .doc(user.uid)
+      .set({ displayName: user.displayName });
+    const usernameUpdate = firebase
+      .firestore()
+      .collection("usernames")
+      .doc(user.displayName)
+      .set({ uid: user.uid });
+    return Promise.all([profileUpdate, databaseUpdate, usernameUpdate]);
+  });
 }
 
 function createUser(email, password, username) {
@@ -126,7 +142,7 @@ const LoginPage = () => {
           <button onClick={handleSubmit}>
             {hasAccount ? "login" : "create"}
           </button>
-          <button className='marginPop' onClick={signInWithPopup}>create with google</button>
+          <button className='marginPop' onClick={signInWithPopup}>{hasAccount ? 'login with google' : 'create with google'}</button>
         </div>
         {errorMessage && (
           <div className="error-message">
