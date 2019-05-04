@@ -24,7 +24,7 @@ function doesUsernameExist(username) {
     .then(doc => doc.exists);
 }
 
-function signInWithPopup(){
+function signInWithPopup() {
   firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(userCredential => {
     const user = userCredential.user;
     const profileUpdate = user.updateProfile({
@@ -40,7 +40,7 @@ function signInWithPopup(){
       .collection("usernames")
       .doc(user.displayName)
       .set({ uid: user.uid });
-    return Promise.all([profileUpdate, databaseUpdate, usernameUpdate]);
+    Promise.all([profileUpdate, databaseUpdate, usernameUpdate]).then(() => navigate("/")).catch(e => console.log(e));
   });
 }
 
@@ -142,7 +142,8 @@ const LoginPage = () => {
           <button onClick={handleSubmit}>
             {hasAccount ? "login" : "create"}
           </button>
-          <button className='marginPop' onClick={signInWithPopup}>{hasAccount ? 'login with google' : 'create with google'}</button>
+          <button className='marginPop'
+                  onClick={signInWithPopup}>{hasAccount ? "login with google" : "create with google"}</button>
         </div>
         {errorMessage && (
           <div className="error-message">
