@@ -27,21 +27,28 @@ function doesUsernameExist(username) {
 function signInWithPopup() {
   firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(userCredential => {
     const user = userCredential.user;
-    const profileUpdate = user.updateProfile({
-      displayName: user.displayName
+    doesUsernameExist(user.displayName).then(usernameExits => {
+      if (usernameExits) {
+        navigate("/");
+      } else {
+        const profileUpdate = user.updateProfile({
+          displayName: user.displayName
+        });
+        const databaseUpdate = firebase
+          .firestore()
+          .collection("users")
+          .doc(user.uid)
+          .set({ displayName: user.displayName });
+        const usernameUpdate = firebase
+          .firestore()
+          .collection("usernames")
+          .doc(user.displayName)
+          .set({ uid: user.uid });
+        Promise.all([profileUpdate, databaseUpdate, usernameUpdate]).then(() => navigate("/")).catch(e => console.log(e));
+      }
     });
-    const databaseUpdate = firebase
-      .firestore()
-      .collection("users")
-      .doc(user.uid)
-      .set({ displayName: user.displayName });
-    const usernameUpdate = firebase
-      .firestore()
-      .collection("usernames")
-      .doc(user.displayName)
-      .set({ uid: user.uid });
-    Promise.all([profileUpdate, databaseUpdate, usernameUpdate]).then(() => navigate("/")).catch(e => console.log(e));
   });
+
 }
 
 function createUser(email, password, username) {
