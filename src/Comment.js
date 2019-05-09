@@ -46,7 +46,7 @@ const Comment = ({
         y: container.top + box.height + 10
       }
     });
-  }, [boxRef, containerRef, commentId, setLineData]);
+  }, [boxRef, containerRef, commentId]);
 
   // Varying inner contents
   let innards = null;

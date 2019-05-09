@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
@@ -28,6 +28,7 @@ import LoginPage from "./LoginPage.js";
 // }
 
 function updateProfile(user, newName) {
+  const oldName = user.displayName;
   user.updateProfile({
     displayName: newName
   });
@@ -36,9 +37,20 @@ function updateProfile(user, newName) {
     .collection("users")
     .doc(user.uid)
     .update({ displayName: newName });
+  firebase
+    .firestore()
+    .collection("usernames")
+    .doc(newName)
+    .set({ uid: user.uid });
+  firebase
+    .firestore()
+    .collection("usernames")
+    .doc(oldName)
+    .delete();
 }
 
 function Header({ user }) {
+  const usernameRef = useRef();
   const userDisplayString = user ? `${user.displayName}:${user.email}` : 'no user';
   const loginButton = user
     ? (<button onClick={() => firebase.auth().signOut()}>sign out</button>)
@@ -48,7 +60,8 @@ function Header({ user }) {
       <div>
         user: {userDisplayString}
       </div>
-      {user && <button onClick={() => updateProfile(user, "CH Work")}>
+      <input type="text" ref={usernameRef} />
+      {user && <button onClick={() => updateProfile(user, usernameRef.current.value)}>
         update profile
       </button>}
       {loginButton}

@@ -61,6 +61,7 @@ const Chat = ({ user, chatId }) => {
   );
 
   function handleSetReply(parentId) {
+    console.log('setting reply', parentId);
     if (parentId) {
       setReplyState({ parentId });
     } else {
@@ -115,10 +116,18 @@ const Chat = ({ user, chatId }) => {
     );
     Promise.all(userFetches).then(docs => {
       const userMap = Object.assign({}, users);
+      let userMapChanged = false;
       docs.forEach(
-        doc => (userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id }))
+        doc => {
+          if (!userMap[doc.id]) {
+            userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id });
+            userMapChanged = true;
+          }
+        }
       );
-      setUsers(userMap);
+      if (userMapChanged) {
+        setUsers(userMap);
+      }
     });
   }, [chatData, users]);
 
@@ -177,7 +186,7 @@ const Chat = ({ user, chatId }) => {
       const left = from.x === to.x ? from.x - 2 : Math.min(from.x, to.x);
       const style = {
         position: "absolute",
-        top: from.y - 32,
+        top: from.y - 32 + window.scrollY,
         left: left - 20 - 2,
         height,
         width: width + 4

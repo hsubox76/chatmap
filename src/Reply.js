@@ -9,6 +9,7 @@ const Reply = ({ parentId, user, chatId, closeReplyBox = () => {} }) => {
     e.preventDefault();
     // TODO: ADD LOADING INDICATOR ON, DISABLE BUTTON, USE STATE PROBABLY
     inputRef.current.disabled = true;
+    console.log('adding comment');
     firebase
       .firestore()
       .collection("comments")
@@ -20,6 +21,7 @@ const Reply = ({ parentId, user, chatId, closeReplyBox = () => {} }) => {
         isHead: !parentId
       })
       .then(docRef => {
+        console.log('added comment', inputRef.current.value);
         // Update parent and/or top-level chat info.
         const downstreamPromises = [];
         // Update chat top-level info
@@ -49,14 +51,17 @@ const Reply = ({ parentId, user, chatId, closeReplyBox = () => {} }) => {
           .doc(chatId)
           .update(chatUpdates);
         downstreamPromises.push(updateChat);
+        console.log('downstreamPromises', downstreamPromises);
         return Promise.all(downstreamPromises);
       })
       .then(() => {
+        console.log('closing reply box');
         closeReplyBox();
       })
       .catch(e => console.error(e))
       .finally(() => {
         // TODO: ADD LOADING INDICATOR OFF
+        console.log('done');
       });
   }
 

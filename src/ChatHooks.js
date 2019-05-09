@@ -15,6 +15,7 @@ export function useWindowWidth() {
 }
 
 export function generateCommentTree(comments, chatData, replyState) {
+  console.log('generateCommentTree');
   if (!comments || !chatData) return;
   const queue = [];
   const rows = [];
