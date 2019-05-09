@@ -2,15 +2,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   background-color: lightgrey;
   width: calc(100vw - 40px);
   height: calc(100vh - 60px);
   overflow: auto;
+  position: relative;
 }
 
 .chat-area {
   flex: 1;
-  position: relative;
   background-color: palegoldenrod;
 }
 
@@ -35,6 +36,16 @@
   max-width: 400px;
 }
 
+.comment-container .comment-box.is-me {
+  background-color: white;
+  box-sizing: border-box;
+  padding: 5px;
+  border: 1px solid slateblue;
+  border-radius: 5px;
+  min-width: 250px;
+  max-width: 400px;
+}
+
 .comment-box.comment-reply-box {
   box-shadow: inset 0 0 0 1px seagreen, inset 0 0 0 2px lightgreen;
 }
@@ -44,7 +55,7 @@
   font-size: .9rem;
 }
 
-.comment-container .comment-box .comment-author.is-me {
+.comment-container .comment-box.is-me .comment-author {
   font-weight: bold;
   font-size: .9rem;
   color: slateblue;

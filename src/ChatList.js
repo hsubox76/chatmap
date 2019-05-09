@@ -10,7 +10,6 @@ const ChatList = ({ user }) => {
 
   useEffect(() => {
     if (!user) return;
-    console.log('top');
     firebase
       .firestore()
       .collection("chats")
@@ -40,10 +39,8 @@ const ChatList = ({ user }) => {
         .doc(id)
         .get()
     );
-    console.log('userFetches', userFetches);
     Promise.all(userFetches).then(docs => {
       const userMap = {};
-      console.log('docfetch for docs', docs);
       docs.forEach(doc => (userMap[doc.id] = doc.data()));
       setUsersById(userMap);
     });
@@ -51,7 +48,6 @@ const ChatList = ({ user }) => {
 
   function createChat(e) {
     e.preventDefault();
-    console.log('createchat');
     firebase
       .firestore()
       .collection("chats")

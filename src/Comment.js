@@ -1,7 +1,6 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Reply from "./Reply";
 import { format } from "date-fns";
-import { useWindowWidth } from "./ChatHooks";
 
 const Comment = ({
   comment,
@@ -14,9 +13,6 @@ const Comment = ({
   setReply,
   setLineData
 }) => {
-  const [box, setBox] = useState();
-  const [container, setContainer] = useState();
-  const windowWidth = useWindowWidth();
 
   // Outer container style (dimensions & position)
   const style = {
@@ -33,25 +29,13 @@ const Comment = ({
   }
 
   const boxClasses = ["comment-box"];
-  const boxRef = useCallback(
-    node => {
-      if (node) {
-        setBox(node.getBoundingClientRect());
-      }
-    },
-    [comment]
-  );
-  const containerRef = useCallback(
-    node => {
-      if (node) {
-        setContainer(node.getBoundingClientRect());
-      }
-    },
-    [comment]
-  );
+  const boxRef = useRef();
+  const containerRef = useRef();
 
   useEffect(() => {
-    if (!box || !container) return;
+    if (!boxRef.current || !containerRef.current) return;
+    const box = boxRef.current.getBoundingClientRect();
+    const container = containerRef.current.getBoundingClientRect();
     setLineData(commentId, {
       topDot: {
         x: container.left + container.width / 2,
@@ -62,7 +46,7 @@ const Comment = ({
         y: container.top + box.height + 10
       }
     });
-  }, [box, container, windowWidth]);
+  }, [boxRef, containerRef, commentId, setLineData]);
 
   // Varying inner contents
   let innards = null;
@@ -81,7 +65,7 @@ const Comment = ({
     );
   } else {
     const authorClasses = ["comment-author"];
-    if (user && user.uid === author.uid) authorClasses.push("is-me");
+    if (user && user.uid === comment.authorId) boxClasses.push("is-me");
     innards = (
       <div>
         <div className="comment-header">

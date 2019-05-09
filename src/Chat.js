@@ -114,13 +114,13 @@ const Chat = ({ user, chatId }) => {
         .get()
     );
     Promise.all(userFetches).then(docs => {
-      const userMap = {};
+      const userMap = Object.assign({}, users);
       docs.forEach(
         doc => (userMap[doc.id] = Object.assign(doc.data(), { uid: doc.id }))
       );
       setUsers(userMap);
     });
-  }, [chatData]);
+  }, [chatData, users]);
 
   // Get comment and chat area widths based on window width.
   let baseCommentWidth = commentTree
