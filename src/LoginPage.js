@@ -7,12 +7,12 @@ import "./LoginPage.css";
 
 function isUsernameValid(username) {
   if (username.length < 3) {
-    return ({error: 'is too short'});
+    return ({ error: "is too short" });
   }
   if (username.length > 16) {
-    return ({error: 'is too long'});
+    return ({ error: "is too long" });
   }
-  return username.match(/^[A-Za-z0-9]+$/) || { error: 'has invalid characters' };
+  return username.match(/^[A-Za-z0-9]+$/) || { error: "has invalid characters" };
 }
 
 function doesUsernameExist(username) {
@@ -24,11 +24,38 @@ function doesUsernameExist(username) {
     .then(doc => doc.exists);
 }
 
+function signInWithPopup() {
+  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(userCredential => {
+    const user = userCredential.user;
+    doesUsernameExist(user.displayName).then(usernameExits => {
+      if (usernameExits) {
+        navigate("/");
+      } else {
+        const profileUpdate = user.updateProfile({
+          displayName: user.displayName
+        });
+        const databaseUpdate = firebase
+          .firestore()
+          .collection("users")
+          .doc(user.uid)
+          .set({ displayName: user.displayName });
+        const usernameUpdate = firebase
+          .firestore()
+          .collection("usernames")
+          .doc(user.displayName)
+          .set({ uid: user.uid });
+        Promise.all([profileUpdate, databaseUpdate, usernameUpdate]).then(() => navigate("/")).catch(e => console.log(e));
+      }
+    });
+  });
+
+}
+
 function createUser(email, password, username) {
   return doesUsernameExist(username)
     .then(usernameExists => {
       if (usernameExists) {
-        throw new Error('Username already exists.');
+        throw new Error("Username already exists.");
       }
     })
     .then(() => {
@@ -58,7 +85,7 @@ function createUser(email, password, username) {
 function loginUser(email, password) {
   return firebase
     .auth()
-    .signInWithEmailAndPassword(email, password)
+    .signInWithEmailAndPassword(email, password);
 }
 
 const LoginPage = () => {
@@ -73,21 +100,21 @@ const LoginPage = () => {
     setErrorMessage(null);
     if (hasAccount) {
       loginUser(emailRef.current.value, passwordRef.current.value)
-      .then(() => navigate('/'))
-      .catch(e => setErrorMessage(e.message));
+        .then(() => navigate("/"))
+        .catch(e => setErrorMessage(e.message));
     } else {
       const username = usernameRef.current.value;
       const result = isUsernameValid(username);
       if (result.error) {
-        setErrorMessage('username ' + result.error);
+        setErrorMessage("username " + result.error);
         return;
       }
       createUser(
         emailRef.current.value,
         passwordRef.current.value,
         username
-      ).then(() => navigate('/'))
-      .catch(e => console.error(e));
+      ).then(() => navigate("/"))
+        .catch(e => console.error(e));
       // .catch(e => setErrorMessage(e.message));
     }
   }
@@ -96,9 +123,10 @@ const LoginPage = () => {
     return (
       <div className="form-row">
         <label>{labelText}</label>
-        <input ref={ref} type={type} />
+        <input ref={ref} type={type}/>
       </div>
     );
+
   }
 
   return (
@@ -121,6 +149,8 @@ const LoginPage = () => {
           <button onClick={handleSubmit}>
             {hasAccount ? "login" : "create"}
           </button>
+          <button className='marginPop'
+                  onClick={signInWithPopup}>{hasAccount ? "login with google" : "create with google"}</button>
         </div>
         {errorMessage && (
           <div className="error-message">
